@@ -3,17 +3,23 @@ use windows::{
     Win32::{System::Com::*, UI::Shell::*},
 };
 
+use dotenv::dotenv;
+use unsplash::get_random;
+
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() {
     println!("starting");
 
-    change_wallpaper("C:\\Users\\17xan\\dev\\unsplash\\wallpaper.jpg");
+    dotenv().ok();
 
-    Ok(())
+    let photo = get_random().await.unwrap();
+
+    //change_wallpaper("C:\\Users\\17xan\\dev\\unsplash\\wallpaper.jpg");
 }
 
 fn change_wallpaper(path: &str) {
     unsafe {
+        // TODO: handle errors better.
         CoInitializeEx(None, COINIT_APARTMENTTHREADED).unwrap();
 
         let dw: IDesktopWallpaper = CoCreateInstance(&DesktopWallpaper, None, CLSCTX_ALL).unwrap();
