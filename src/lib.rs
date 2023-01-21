@@ -1,96 +1,143 @@
 use serde::{Deserialize, Serialize};
 use std::env;
-use std::time;
+use std::fs::File;
+use std::io;
 
 const URL: &str = "https://api.unsplash.com/";
 
 #[derive(Serialize, Deserialize, Debug, Default)]
-pub struct Photo {
+struct Photo {
     id: String,
-    // created_at: time::Instant,
-    // updated_at: time::Instant,
+    created_at: Option<String>,
+    updated_at: Option<String>,
+    promoted_at: Option<String>,
     width: u16,
     height: u16,
-    color: String,
-    blur_hash: String,
+    color: Option<String>,
+    blur_hash: Option<String>,
+    description: Option<String>,
+    alt_description: Option<String>,
     downloads: u64,
+    views: u64,
     likes: u32,
     liked_by_user: bool,
-    description: String,
-    // exif: Exif,
-    // location: Location,
-    // current_user_collections: Vec<Collection>,
-    // urls: Urls,
-    // links: Links,
-    // user: User,
+    exif: Exif,
+    location: Location,
+    current_user_collections: Vec<Collection>,
+    urls: Urls,
+    links: Links,
+    user: User,
 }
 
+#[derive(Serialize, Deserialize, Debug, Default)]
 struct Exif {
-    make: String,
-    model: String,
-    exposure_time: f64,
-    aperture: f64,
-    focal_length: f32,
-    iso: u32,
+    make: Option<String>,
+    model: Option<String>,
+    exposure_time: Option<String>,
+    aperture: Option<String>,
+    focal_length: Option<String>,
+    iso: Option<u32>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Default)]
 struct Location {
-    name: String,
-    city: String,
-    country: String,
+    name: Option<String>,
+    city: Option<String>,
+    country: Option<String>,
     position: Position,
 }
 
+#[derive(Serialize, Deserialize, Debug, Default)]
 struct Position {
     latitude: f32,
     longitude: f32,
 }
 
+#[derive(Serialize, Deserialize, Debug, Default)]
 struct Collection {
     id: u64,
-    title: String,
-    published_at: time::Instant,
-    last_collected_at: time::Instant,
-    updated_at: time::Instant,
-    cover_photo: String,
-    user: String,
+    title: Option<String>,
+    published_at: Option<String>,
+    last_collected_at: Option<String>,
+    updated_at: Option<String>,
+    cover_photo: Option<String>,
+    user: Option<String>,
 }
-
+#[derive(Serialize, Deserialize, Debug, Default)]
 struct Urls {
-    raw: String,
-    full: String,
-    regular: String,
-    small: String,
-    thumb: String,
+    raw: Option<String>,
+    full: Option<String>,
+    regular: Option<String>,
+    small: Option<String>,
+    thumb: Option<String>,
 }
-
+#[derive(Serialize, Deserialize, Debug, Default)]
 struct Links {
-    cself: String,
-    html: String,
-    download: String,
-    download_location: String,
-    photos: String,
-    likes: String,
-    portfolio: String,
+    #[serde(rename = "self")]
+    this: Option<String>,
+    html: Option<String>,
+    download: Option<String>,
+    // download_location: Option<String>,
+    // photos: Option<String>,
+    // likes: Option<String>,
+    // portfolio: Option<String>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Default)]
 struct User {
     id: String,
-    updated_at: time::Instant,
-    username: String,
-    name: String,
-    portfolio_url: String,
-    bio: String,
-    location: String,
+    updated_at: Option<String>,
+    username: Option<String>,
+    name: Option<String>,
+    first_name: Option<String>,
+    last_name: Option<String>,
+    bio: Option<String>,
+    location: Option<String>,
     total_likes: u32,
     total_photos: u32,
     total_collections: u32,
-    instagram_username: String,
-    twitter_username: String,
+    instagram_username: Option<String>,
+    twitter_username: Option<String>,
+    portfolio_url: Option<String>,
     links: Links,
 }
 
-pub async fn get_random() -> reqwest::Result<Photo> {
+pub async fn download_photo() {
+    let photo = get_random().await.unwrap();
+    get_photo(photo.urls.full.unwrap()).await;
+}
+
+async fn get_random() -> reqwest::Result<Photo> {
+    let client = gen_client();
+    let r_url = String::from(URL) + "photos/random/";
+    let res = match client.get(r_url).send().await {
+        Ok(res) => res,
+        Err(err) => {
+            println!("RESPONSE ERROR: {}", err);
+            return Err(err);
+        }
+    };
+
+    // println!("DEBUG response: {:?}", res.text().await.unwrap());
+    // return Ok(Photo::default());
+
+    // TODO: check and handle error codes in response.
+
+    let photo: Photo = match res.json().await {
+        Ok(photo) => {
+            println!("JSON: {:?}", photo);
+            photo
+        }
+        Err(err) => {
+            println!("JSON ERROR: {}", err);
+            return Err(err);
+        }
+    };
+
+    Ok(photo)
+}
+
+fn gen_client() -> reqwest::Client {
     let mut headers = reqwest::header::HeaderMap::new();
     headers.insert(
         "Accept-Version",
@@ -110,30 +157,14 @@ pub async fn get_random() -> reqwest::Result<Photo> {
         .build()
         .unwrap();
 
-    let r_url = String::from(URL) + "photos/random/";
-    let res = match client.get(r_url).send().await {
-        Ok(res) => res,
-        Err(err) => {
-            println!("ERROR: {}", err);
-            return Err(err);
-        }
-    };
+    client
+}
 
-    println!("RESPONSE: {:?}", res.text().await);
-    // TODO: check and handle error codes in response.
-
-    // let photo: Photo = match res.json().await {
-    //     Ok(photo) => {
-    //         println!("JSON: {:?}", photo);
-    //         photo
-    //     }
-    //     Err(err) => {
-    //         println!("ERROR: {}", err);
-    //         return Err(err);
-    //     }
-    // };
-
-    // Ok(photo)
-    let p = Photo::default();
-    Ok(p)
+async fn get_photo(url: String) {
+    let client = gen_client();
+    let resp = client.get(url).send().await.unwrap();
+    let mut content = io::Cursor::new(resp.bytes().await.unwrap());
+    println!("creating file");
+    let mut file = File::create("/Users/17xan/dev/unsplash/photo.jpg").unwrap();
+    io::copy(&mut content, &mut file).unwrap();
 }
