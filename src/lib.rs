@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs::File;
 use std::io;
+use std::path::Path;
 
 const URL: &str = "https://api.unsplash.com/";
 
@@ -165,6 +166,7 @@ async fn get_photo(url: String) {
     let resp = client.get(url).send().await.unwrap();
     let mut content = io::Cursor::new(resp.bytes().await.unwrap());
     println!("creating file");
-    let mut file = File::create("/Users/17xan/dev/unsplash/photo.jpg").unwrap();
+    let p = env::current_dir().unwrap().join("photo.jpg");
+    let mut file = File::create(p).unwrap();
     io::copy(&mut content, &mut file).unwrap();
 }
