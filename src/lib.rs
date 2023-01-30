@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs::File;
 use std::io;
-use std::path::Path;
+use std::path::PathBuf;
 
 const URL: &str = "https://api.unsplash.com/";
 
@@ -103,9 +103,9 @@ struct User {
     links: Links,
 }
 
-pub async fn download_photo() {
+pub async fn download_photo(path: &PathBuf) {
     let photo = get_random().await.unwrap();
-    get_photo(photo.urls.full.unwrap()).await;
+    get_photo(photo.urls.full.unwrap(), path).await;
 }
 
 async fn get_random() -> reqwest::Result<Photo> {
@@ -161,12 +161,12 @@ fn gen_client() -> reqwest::Client {
     client
 }
 
-async fn get_photo(url: String) {
+async fn get_photo(url: String, path: &PathBuf) {
     let client = gen_client();
     let resp = client.get(url).send().await.unwrap();
     let mut content = io::Cursor::new(resp.bytes().await.unwrap());
     println!("creating file");
-    let p = env::current_dir().unwrap().join("photo.jpg");
-    let mut file = File::create(p).unwrap();
+
+    let mut file = File::create(path).unwrap();
     io::copy(&mut content, &mut file).unwrap();
 }

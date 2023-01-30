@@ -1,35 +1,43 @@
-// use windows::{
-//     core::*,
-//     Win32::{System::Com::*, UI::Shell::*},
-// };
-
 use dotenv::dotenv;
+use std::env;
 use unsplash;
+use windows::{
+    core::*,
+    Win32::{System::Com::*, UI::Shell::*},
+};
+
+use std::path::PathBuf;
 
 #[tokio::main]
 async fn main() {
     println!("starting");
 
     dotenv().ok();
-    unsplash::download_photo().await;
+    let path = env::current_dir().unwrap().join("photo.jpg");
 
-    //change_wallpaper("C:\\Users\\17xan\\dev\\unsplash\\wallpaper.jpg");
+    unsplash::download_photo(&path).await;
+    change_wallpaper(path);
 }
 
-// fn change_wallpaper(path: &str) {
-//     unsafe {
-//         // TODO: handle errors better.
-//         CoInitializeEx(None, COINIT_APARTMENTTHREADED).unwrap();
+fn change_wallpaper(path: PathBuf) {
+    let path = path.into_os_string().into_string().unwrap();
+    let img = &HSTRING::from(path);
 
-//         let dw: IDesktopWallpaper = CoCreateInstance(&DesktopWallpaper, None, CLSCTX_ALL).unwrap();
+    unsafe {
+        // TODO: handle errors better.
+        CoInitializeEx(None, COINIT_APARTMENTTHREADED).unwrap();
 
-//         let mdp = dw.GetMonitorDevicePathAt(0).unwrap();
-//         println!("monitor device path: {}", mdp.to_string().unwrap());
-//         let monitor_id = PCWSTR(mdp.as_ptr());
-//         let img = &HSTRING::from(path);
-//         println!("desktop wallpaper path: {}", img.to_string());
-//         dw.SetWallpaper(monitor_id, img).unwrap();
+        let dw: IDesktopWallpaper = CoCreateInstance(&DesktopWallpaper, None, CLSCTX_ALL).unwrap();
+        let m_count = dw.GetMonitorDevicePathCount().unwrap();
+        println!("detected {} monitors.", m_count);
 
-//         CoUninitialize();
-//     }
-// }
+        for i in 0..m_count {
+            let mdp = dw.GetMonitorDevicePathAt(i).unwrap();
+            println!("monitor device path: {}", mdp.to_string().unwrap());
+            let monitor_id = PCWSTR(mdp.as_ptr());
+            dw.SetWallpaper(monitor_id, img).unwrap();
+        }
+
+        CoUninitialize();
+    }
+}
