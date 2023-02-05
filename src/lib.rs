@@ -29,7 +29,7 @@ async fn get_random() -> reqwest::Result<Photo> {
 
     let photo: Photo = match res.json().await {
         Ok(photo) => {
-            println!("JSON: {:?}", photo);
+            // println!("JSON: {:?}", photo);
             photo
         }
         Err(err) => {
@@ -68,7 +68,7 @@ async fn get_photo(url: String, path: &PathBuf) {
     let client = gen_client();
     let resp = client.get(url).send().await.unwrap();
     let mut content = io::Cursor::new(resp.bytes().await.unwrap());
-    println!("creating file");
+    // println!("creating file");
 
     let mut file = File::create(path).unwrap();
     io::copy(&mut content, &mut file).unwrap();
