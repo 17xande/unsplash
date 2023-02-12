@@ -11,6 +11,28 @@ pub async fn download_photo(path: &PathBuf) {
     get_photo(photo.urls.full.unwrap(), path).await;
 }
 
+async fn get_wallpaper() -> reqwest::Result<Photo> {
+    let client = gen_client();
+    let r_url = String::from(URL) + "topics/wallpapers/photos?per_page=1&orientation=landscape";
+    let res = match client.get(r_url).send().await {
+        Ok(res) => res,
+        Err(err) => {
+            println!("RESPONSE ERROR: {}", err);
+            return Err(err);
+        }
+    };
+
+    let photos: Photo[] = match res.json().await {
+        Ok(photos) => return photos;
+        Err(err) => {
+            println!("JSON ERROR: {}", err);
+            return Err(err);
+        }
+    };
+
+    return photos[0];
+}
+
 async fn get_random() -> reqwest::Result<Photo> {
     let client = gen_client();
     let r_url = String::from(URL) + "photos/random/";
