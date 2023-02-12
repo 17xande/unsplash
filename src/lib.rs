@@ -7,6 +7,11 @@ pub mod types;
 const URL: &str = "https://api.unsplash.com/";
 
 pub async fn download_photo(path: &PathBuf) {
+    let photo = get_wallpaper().await.unwrap();
+    get_photo(photo.urls.full.unwrap(), path).await;
+}
+
+pub async fn download_random(path: &PathBuf) {
     let photo = get_random().await.unwrap();
     get_photo(photo.urls.full.unwrap(), path).await;
 }
@@ -22,15 +27,15 @@ async fn get_wallpaper() -> reqwest::Result<Photo> {
         }
     };
 
-    let photos: Photo[] = match res.json().await {
-        Ok(photos) => return photos;
+    let photos: [Photo; 1] = match res.json().await {
+        Ok(photos) => photos,
         Err(err) => {
             println!("JSON ERROR: {}", err);
             return Err(err);
         }
     };
 
-    return photos[0];
+    return Ok(photos[0].clone());
 }
 
 async fn get_random() -> reqwest::Result<Photo> {

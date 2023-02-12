@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Photo {
     pub id: String,
     pub created_at: Option<String>,
@@ -24,7 +24,7 @@ pub struct Photo {
     pub user: User,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Exif {
     pub make: Option<String>,
     pub model: Option<String>,
@@ -34,7 +34,7 @@ pub struct Exif {
     pub iso: Option<u32>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Location {
     pub name: Option<String>,
     pub city: Option<String>,
@@ -42,13 +42,13 @@ pub struct Location {
     pub position: Position,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Position {
     pub latitude: f32,
     pub longitude: f32,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Collection {
     pub id: u64,
     pub title: Option<String>,
@@ -58,7 +58,7 @@ pub struct Collection {
     pub cover_photo: Option<String>,
     pub user: Option<String>,
 }
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Urls {
     pub raw: Option<String>,
     pub full: Option<String>,
@@ -66,7 +66,7 @@ pub struct Urls {
     pub small: Option<String>,
     pub thumb: Option<String>,
 }
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Links {
     #[serde(rename = "self")]
     pub this: Option<String>,
@@ -78,7 +78,7 @@ pub struct Links {
     // portfolio: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct User {
     pub id: String,
     pub updated_at: Option<String>,
