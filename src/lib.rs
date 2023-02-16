@@ -17,7 +17,8 @@ pub async fn download_random(path: &PathBuf) {
 }
 
 async fn get_wallpaper() -> reqwest::Result<Photo> {
-    let client = gen_client();
+    let access_key = env::var("AccessKey").unwrap();
+    let client = gen_client(access_key);
     let r_url = String::from(URL) + "topics/wallpapers/photos?per_page=1&orientation=landscape";
     let res = match client.get(r_url).send().await {
         Ok(res) => res,
@@ -39,7 +40,8 @@ async fn get_wallpaper() -> reqwest::Result<Photo> {
 }
 
 async fn get_random() -> reqwest::Result<Photo> {
-    let client = gen_client();
+    let access_key = env::var("AccessKey").unwrap();
+    let client = gen_client(access_key);
     let r_url = String::from(URL) + "photos/random/";
     let res = match client.get(r_url).send().await {
         Ok(res) => res,
@@ -68,19 +70,18 @@ async fn get_random() -> reqwest::Result<Photo> {
     Ok(photo)
 }
 
-fn gen_client() -> reqwest::Client {
+fn gen_client(access_key: &str) -> reqwest::Client {
     let mut headers = reqwest::header::HeaderMap::new();
     headers.insert(
         "Accept-Version",
         reqwest::header::HeaderValue::from_static("V1"),
     );
 
-    let api_key = env::var("AccessKey").unwrap();
-    let api_key = String::from("Client-ID ") + &api_key;
+    let access_key = String::from("Client-ID ") + access_key;
 
     headers.insert(
         reqwest::header::AUTHORIZATION,
-        reqwest::header::HeaderValue::from_str(&api_key).unwrap(),
+        reqwest::header::HeaderValue::from_str(&access_key).unwrap(),
     );
 
     let client = reqwest::Client::builder()
@@ -88,7 +89,7 @@ fn gen_client() -> reqwest::Client {
         .build()
         .unwrap();
 
-    client
+    return client;
 }
 
 async fn get_photo(url: String, path: &PathBuf) {
@@ -100,3 +101,13 @@ async fn get_photo(url: String, path: &PathBuf) {
     let mut file = File::create(path).unwrap();
     io::copy(&mut content, &mut file).unwrap();
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::get_wallpaper;
+
+    #[test]
+    fn test_wallpaper() {
+    }
+}
+

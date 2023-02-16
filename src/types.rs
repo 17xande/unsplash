@@ -87,6 +87,7 @@ pub struct User {
     pub first_name: Option<String>,
     pub last_name: Option<String>,
     pub bio: Option<String>,
+    pub downloads: u32,
     pub location: Option<String>,
     pub total_likes: u32,
     pub total_photos: u32,
