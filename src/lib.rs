@@ -18,7 +18,7 @@ pub async fn download_random(path: &PathBuf) {
 
 async fn get_wallpaper() -> reqwest::Result<Photo> {
     let access_key = env::var("AccessKey").unwrap();
-    let client = gen_client(access_key);
+    let client = gen_client(&access_key);
     let r_url = String::from(URL) + "topics/wallpapers/photos?per_page=1&orientation=landscape";
     let res = match client.get(r_url).send().await {
         Ok(res) => res,
@@ -41,7 +41,7 @@ async fn get_wallpaper() -> reqwest::Result<Photo> {
 
 async fn get_random() -> reqwest::Result<Photo> {
     let access_key = env::var("AccessKey").unwrap();
-    let client = gen_client(access_key);
+    let client = gen_client(&access_key);
     let r_url = String::from(URL) + "photos/random/";
     let res = match client.get(r_url).send().await {
         Ok(res) => res,
@@ -93,7 +93,8 @@ fn gen_client(access_key: &str) -> reqwest::Client {
 }
 
 async fn get_photo(url: String, path: &PathBuf) {
-    let client = gen_client();
+    let access_key = env::var("AccessKey").unwrap();
+    let client = gen_client(&access_key);
     let resp = client.get(url).send().await.unwrap();
     let mut content = io::Cursor::new(resp.bytes().await.unwrap());
     // println!("creating file");
@@ -105,9 +106,21 @@ async fn get_photo(url: String, path: &PathBuf) {
 #[cfg(test)]
 mod tests {
     use crate::get_wallpaper;
+    use dotenv::dotenv;
 
-    #[test]
-    fn test_wallpaper() {
+    #[tokio::test]
+    async fn test_wallpaper() {
+        dotenv().ok();
+        let res = get_wallpaper().await;
+        let photo = match res {
+            Ok(photo) => photo,
+            Err(err) => {
+                println!("{}", err);
+                return;
+            }
+        };
+
+        println!("{}", photo.id);
     }
 }
 
