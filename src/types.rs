@@ -17,7 +17,7 @@ pub struct Photo {
     pub likes: u32,
     pub liked_by_user: bool,
     pub exif: Option<Exif>,
-    pub location: Location,
+    pub location: Option<Location>,
     pub current_user_collections: Vec<Collection>,
     pub urls: Urls,
     pub links: Links,
@@ -39,7 +39,7 @@ pub struct Location {
     pub name: Option<String>,
     pub city: Option<String>,
     pub country: Option<String>,
-    pub position: Position,
+    pub position: Option<Position>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
