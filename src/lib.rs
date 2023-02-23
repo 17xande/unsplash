@@ -42,7 +42,7 @@ async fn get_wallpaper() -> reqwest::Result<Photo> {
 async fn get_random() -> reqwest::Result<Photo> {
     let access_key = env::var("AccessKey").unwrap();
     let client = gen_client(&access_key);
-    let r_url = String::from(URL) + "photos/random/";
+    let r_url = String::from(URL) + "photos/random?topics=wallpapers&count=1&orientation=landscape";
     let res = match client.get(r_url).send().await {
         Ok(res) => res,
         Err(err) => {
@@ -56,18 +56,15 @@ async fn get_random() -> reqwest::Result<Photo> {
 
     // TODO: check and handle error codes in response.
 
-    let photo: Photo = match res.json().await {
-        Ok(photo) => {
-            // println!("JSON: {:?}", photo);
-            photo
-        }
+    let photos: [Photo; 1] = match res.json().await {
+        Ok(photos) => photos,
         Err(err) => {
             println!("JSON ERROR: {}", err);
             return Err(err);
         }
     };
 
-    Ok(photo)
+    return Ok(photos[0].clone());
 }
 
 fn gen_client(access_key: &str) -> reqwest::Client {
@@ -123,4 +120,3 @@ mod tests {
         println!("{}", photo.id);
     }
 }
-
